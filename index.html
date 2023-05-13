@@ -1,0 +1,169 @@
+<body>
+<script>
+    let drawing = false;
+    let start = { x: 0, y: 0 };
+    let end = { x: 0, y: 0 };
+    let context = null;
+
+    // Create open modal button
+    const openModalButton = document.createElement('button');
+    openModalButton.id = 'open-modal-button';
+    openModalButton.innerText = 'Open Form';
+    document.body.appendChild(openModalButton);
+
+    // Create modal container
+    const modalContainer = document.createElement('div');
+    modalContainer.id = 'modal-container';
+    modalContainer.style.position = 'fixed';
+    modalContainer.style.top = '0';
+    modalContainer.style.left = '0';
+    modalContainer.style.width = '100vw';
+    modalContainer.style.height = '100vh';
+    modalContainer.style.display = 'none';
+    modalContainer.style.zIndex = '1000';
+    modalContainer.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    document.body.appendChild(modalContainer);
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.id = 'modal';
+    modal.style.margin = '15% auto';
+    modal.style.padding = '20px';
+    modal.style.backgroundColor = '#fff';
+    modal.style.width = '50%';
+
+    // Create form
+    const form = document.createElement('form');
+    form.id = 'form';
+
+    // Create form fields
+    const topLeftLabel = document.createElement('label');
+    topLeftLabel.innerText = 'Top left element:';
+    const topLeftElement = document.createElement('input');
+    topLeftElement.id = 'top-left-element';
+    topLeftElement.type = 'text';
+    topLeftElement.readonly = true;
+    topLeftLabel.appendChild(topLeftElement);
+
+    const bottomRightLabel = document.createElement('label');
+    bottomRightLabel.innerText = 'Bottom right element:';
+    const bottomRightElement = document.createElement('input');
+    bottomRightElement.id = 'bottom-right-element';
+    bottomRightElement.type = 'text';
+    bottomRightElement.readonly = true;
+    bottomRightLabel.appendChild(bottomRightElement);
+
+    const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
+    submitButton.innerText = 'Submit';
+
+    const closeModalButton = document.createElement('button');
+    closeModalButton.id = 'close-modal-button';
+    closeModalButton.type = 'button';
+    closeModalButton.innerText = 'Close';
+
+    form.append(topLeftLabel, bottomRightLabel, submitButton, closeModalButton);
+
+    // Create select area button
+    const selectAreaButton = document.createElement('button');
+    selectAreaButton.id = 'select-area-button';
+    selectAreaButton.type = 'button';
+    selectAreaButton.innerText = 'Select area of page';
+
+    // Add form and select area button to modal
+    modal.append(form, selectAreaButton);
+
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    canvas.id = 'canvas';
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100vw';
+    canvas.style.height = '100vh';
+    canvas.style.display = 'none';
+    canvas.style.zIndex = '1000';
+
+    // Add modal and canvas to DOM
+    modalContainer.append(modal, canvas);
+
+    // Event listeners
+    openModalButton.addEventListener('click', () => {
+        modalContainer.style.display = 'block';
+    });
+
+    closeModalButton.addEventListener('click', () => {
+        modalContainer.style.display = 'none';
+    });
+
+    selectAreaButton.addEventListener('click',
+        () => {
+            canvas.style.display = 'block';
+            context = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+    canvas.addEventListener('mousedown', (e) => {
+        drawing = true;
+        start.x = e.clientX;
+        start.y = e.clientY;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (!drawing) return;
+        end.x = e.clientX;
+        end.y = e.clientY;
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // First, fill the entire canvas with semi-transparent black
+        context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Then, clear the selected rectangle
+        context.globalCompositeOperation = 'destination-out';
+        context.beginPath();
+        context.rect(start.x, start.y, end.x - start.x, end.y - start.y);
+        context.fill();
+
+        // Reset the composite operation
+        context.globalCompositeOperation = 'source-over';
+    });
+
+    canvas.addEventListener('mouseup', () => {
+        drawing = false;
+        topLeftElement.value = document.elementFromPoint(start.x, start.y).tagName;
+        bottomRightElement.value = document.elementFromPoint(end.x, end.y).tagName;
+
+        // Don't hide the canvas immediately, so the user can see the selected area
+        setTimeout(() => {
+            canvas.style.display = 'none';
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }, 500);
+    });
+
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const topLeftTagName = topLeftElement.value;
+        const bottomRightTagName = bottomRightElement.value;
+
+        console.log('Top left element tag name:', topLeftTagName);
+        console.log('Bottom right element tag name:', bottomRightTagName);
+
+        // send a POST request to your server
+        // const formData = {
+        //   topLeftElement: topLeftTagName,
+        //   bottomRightElement: bottomRightTagName
+        // };
+        // fetch('/your-endpoint', {
+        //   method: 'POST',
+        //   body: JSON.stringify(formData),
+        //   headers: { 'Content-Type': 'application/json' }
+        // })
+        // .then(response => response.json())
+        // .then(data => console.log(data))
+        // .catch((error) => console.error('Error:', error));
+    });
+</script>
+</body>
